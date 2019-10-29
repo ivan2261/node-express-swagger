@@ -1,0 +1,11 @@
+{
+    "service": {
+        "prefix": "bngj",
+        "name": "sample-api",
+        "ttl": "10000",
+        "maxRetries": 3,
+        "host": "localhost",
+        "version": "0.0.1",
+        "port": 10010
+    }
+}

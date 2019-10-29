@@ -1,0 +1,269 @@
+swagger: "2.0"
+
+info:
+  version: 0.0.1
+  title: Simple API
+  description: A simple API to learn how to write OpenAPI Specification
+
+schemes:
+- http
+- https
+host: localhost:10010
+basePath: /
+
+tags:
+- name: user
+  description: 用户相关操作
+
+consumes:
+- application/json
+produces:
+- application/json
+
+paths:
+  /hello:
+    x-swagger-router-controller: hello_world
+    get:
+      description: Returns 'Hello' to the caller
+      operationId: hello
+      parameters:
+        - name: name
+          in: query
+          description: The name of the user to whom to say hello
+          required: false
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            properties:
+              message:
+                type: string
+        default:
+          $ref: "#/responses/ErrorResponse"
+  
+  /user:
+    x-swagger-router-controller: User
+    post:
+      tags:
+      - user
+      summary: 创建用户
+      description: 创建一个新的用户
+      operationId: addUser
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/UserResult"
+        default:
+          $ref: "#/responses/ErrorResponse"
+    put:
+      tags:
+      - user
+      summary: 更新用户
+      description: 更新用户列表的现有用户
+      operationId: updateUser
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        200:
+          description: Success
+        default:
+          $ref: "#/responses/ErrorResponse"
+  /user/findByStatus:
+    x-swagger-router-controller: User
+    get:
+      tags:
+      - user
+      summary: 根据状态查找用户
+      description: 可以用逗号分隔的字符串提供多个状态值
+      operationId: findUsersByStatus
+      parameters:
+        - $ref: "#/parameters/status"
+        - $ref: "#/parameters/page"
+        - $ref: "#/parameters/pageSize"
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/UsersResult"
+        default:
+          $ref: "#/responses/ErrorResponse"
+  /user/findByTags:
+    x-swagger-router-controller: User
+    get:
+      tags:
+      - user
+      summary: 根据标签查找用户
+      description: 可以用逗号分隔的字符串提供多个标签值
+      operationId: findUsersByTags
+      parameters:
+        - $ref: "#/parameters/tags"
+        - $ref: "#/parameters/page"
+        - $ref: "#/parameters/pageSize"
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/UsersResult"
+        default:
+          $ref: "#/responses/ErrorResponse"
+      deprecated: true
+  /user/{id}:
+    x-swagger-router-controller: User
+    parameters:
+      - $ref: "#/parameters/id"
+    get:
+      tags:
+      - user
+      summary: 根据id查找用户
+      description: 返回一个用户
+      operationId: getUserById
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/UserResult"
+        default:
+          $ref: "#/responses/ErrorResponse"
+    post:
+      tags:
+      - user
+      summary: 更新用户
+      description: 用表单数据更新用户
+      operationId: updateUserWithForm
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        200:
+          description: Success
+        default:
+          $ref: "#/responses/ErrorResponse"
+    delete:
+      tags:
+      - user
+      summary: 根据id删除用户
+      description: 删除用户列表的现有用户
+      operationId: deleteUser
+      responses:
+        200:
+          description: Success
+        default:
+          $ref: "#/responses/ErrorResponse"
+
+definitions:
+  Error:
+    required:
+      - code
+      - message
+    properties:
+      code:
+        type: number
+      message:
+        type: string
+  ErrorResult:
+    required:
+      - error
+    properties:
+      error:
+        $ref: "#/definitions/Error"
+  User:
+    type: object
+    required:
+      - id
+      - username
+    properties:
+      id:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      userStatus:
+        type: string
+        description: The user's status
+        enum:
+        - normal
+        - frozen
+        - deleted
+  UserResult:
+    required:
+      - data
+    properties:
+      data:
+        $ref: "#/definitions/User"
+  UsersResult:
+    required:
+      - data
+    properties:
+      count:
+        type: number
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/User"
+
+responses:
+  ErrorResponse:
+    description: Error
+    schema:
+      $ref: "#/definitions/ErrorResult"
+
+parameters:
+  id:
+    name: id
+    in: path
+    description: 用户ID
+    required: true
+    type: string
+  status:
+    name: status
+    in: query
+    description: 进行过滤的状态
+    required: true
+    type: array
+    items:
+      type: string
+      enum:
+      - normal
+      - frozen
+      - deleted
+      default: normal
+    collectionFormat: multi
+  tags:
+    name: tags
+    in: query
+    description: 进行过滤的标签
+    required: true
+    type: array
+    items:
+      type: string
+    collectionFormat: multi
+  page:
+    name: page
+    in: query
+    description: 当前页，从1开始，默认：1
+    type: integer
+  pageSize:
+    name: pageSize
+    in: query
+    description: 页大小，默认：10
+    type: integer
